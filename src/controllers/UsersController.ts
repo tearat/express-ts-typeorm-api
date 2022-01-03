@@ -1,3 +1,4 @@
+import { IsOptional, IsPositive } from "class-validator"
 import {
   Body,
   Delete,
@@ -7,11 +8,21 @@ import {
   Param,
   Patch,
   Post,
-  QueryParam,
+  QueryParams,
 } from "routing-controllers"
 import { getCustomRepository } from "typeorm"
 import { User } from "../entity/User"
 import { UserRepository } from "../repositories/UserRepository"
+
+class GetAllUsersQuery {
+  @IsOptional()
+  @IsPositive()
+  limit: number
+
+  @IsOptional()
+  @IsPositive()
+  offset: number
+}
 
 @JsonController()
 export class UsersController {
@@ -22,8 +33,8 @@ export class UsersController {
   }
 
   @Get("/users")
-  async getAll(@QueryParam("limit") limit: number) {
-    return this.repository.findAll({ limit })
+  async getAll(@QueryParams() query: GetAllUsersQuery) {
+    return this.repository.findAll(query)
   }
 
   @Get("/users/:id")
