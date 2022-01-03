@@ -10,8 +10,4 @@ export class User extends BaseEntity {
 
   @Column()
   age: number
-
-  static all() {
-    return this.createQueryBuilder("user").getMany()
-  }
 }

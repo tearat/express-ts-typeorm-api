@@ -1,29 +1,18 @@
 import "reflect-metadata"
-import { createConnection, getRepository } from "typeorm"
-import { User } from "./entity/User"
-import express from "express"
+import { createConnection } from "typeorm"
+import { createExpressServer } from "routing-controllers"
+import { UsersController } from "./controllers/UsersController"
 
-createConnection().then(async (connection) => {
-  const app = express()
-  app.get("/", async (req, res) => {
-    const users = await User.all()
-    return res.send(users)
+const port = process.env.PORT || 8000
+
+createConnection()
+  .then(async (connection) => {
+    console.log("Connected. Now run express app")
+    createExpressServer({
+      controllers: [UsersController],
+    }).listen(port)
+    console.log(`Server is up and running on port ${port}`)
   })
-  app.get("/:id(\\d+)/", async (req, res) => {
-    const id: number = parseInt(req.params.id)
-    const user = await User.findOne({ id })
-    return res.send(user)
+  .catch((err) => {
+    console.log("Error:", err)
   })
-  app.get("/add", async (req, res) => {
-    const { name = "Anonymous", age = 10 } = req.query as any
-    await User.create({
-      name,
-      age,
-    }).save()
-    return res.send({ status: `Created` })
-  })
-  const port = process.env.PORT || 8000
-  app
-    .listen(port, () => console.log(`>>> Server starts (port ${port})`))
-    .on("error", (error) => console.warn(error))
-})
