@@ -3,49 +3,47 @@ import {
   Delete,
   Get,
   JsonController,
+  OnUndefined,
   Param,
   Patch,
   Post,
+  QueryParam,
 } from "routing-controllers"
-import { getConnectionManager, Repository } from "typeorm"
+import { getCustomRepository } from "typeorm"
 import { User } from "../entity/User"
+import { UserRepository } from "../repositories/UserRepository"
 
 @JsonController()
 export class UsersController {
-  private userRepository: Repository<User>
+  private repository: UserRepository
 
   constructor() {
-    this.userRepository = getConnectionManager().get().getRepository(User)
+    this.repository = getCustomRepository(UserRepository)
   }
 
   @Get("/users")
-  getAll() {
-    return this.userRepository.find()
+  async getAll(@QueryParam("limit") limit: number) {
+    return this.repository.findAll({ limit })
   }
 
   @Get("/users/:id")
+  @OnUndefined(404)
   getOne(@Param("id") id: number) {
-    return this.userRepository.findOne(id)
+    return this.repository.findOne(id)
   }
 
   @Post("/users")
   post(@Body() user: User) {
-    return this.userRepository.insert(user)
+    return this.repository.insert(user)
   }
 
   @Patch("/users/:id")
   patch(@Param("id") id: number, @Body() user: User) {
-    return this.userRepository.save({ id, ...user })
+    return this.repository.update(id, user)
   }
 
-  // Another way
-  // @Patch("/users")
-  // patch(@Body() user1: User, @Body() user2: User) {
-  //   return this.userRepository.save([user1, user2])
-  // }
-
   @Delete("/users/:id")
-  delete(@Param("id") id: number) {
-    return this.userRepository.delete({ id })
+  remove(@Param("id") id: number) {
+    return this.repository.delete({ id })
   }
 }
